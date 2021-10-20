@@ -3,11 +3,13 @@ const morgan = require('morgan')
 const cors = require('cors')
 
 const app = express()
+const cors_config = require('./config/cors')
 
 // Settings
 
 require('dotenv').config()
 app.set('port', process.env.PORT || 2500)
+app.use(cors(cors_config.application.cors.server))
 
 // Middlewares
 
