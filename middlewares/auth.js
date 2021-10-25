@@ -4,6 +4,6 @@ module.exports = {
         if (remember_token) {
             return next()
         }
-        return res.status(401).send({message: 'No token received'})
+        return res.status(401).send({ message: 'No token received' })
     }
 }

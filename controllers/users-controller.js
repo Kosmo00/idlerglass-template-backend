@@ -25,7 +25,7 @@ module.exports = class UsersController {
         const token = await Cripto.getGhTokenFromJWT(token_data)
         const userOrganizations = await GhClient.getUserOrganizations(token)
         let organizations = new Array(userOrganizations.length)
-        for (let i = 0; i < organizations.length; i++){
+        for (let i = 0; i < organizations.length; i++) {
             organizations[i] = {
                 name: userOrganizations[i].login,
                 description: userOrganizations[i].description
