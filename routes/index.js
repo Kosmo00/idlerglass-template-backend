@@ -4,6 +4,7 @@ const { isAuth } = require('../middlewares/auth')
 
 const UsersController = require('../controllers/users-controller')
 const OrganizationsController = require('../controllers/organizations-controller')
+const ReposController = require('../controllers/repos-controller')
 
 const app_token_id = '44e6bde78645589b252a'
 
@@ -13,6 +14,9 @@ router.get('/organizations', isAuth, UsersController.userOrganizations)
 
 // organization routes
 router.get('/:organization/repos', OrganizationsController.organizationRepos)
+
+// repos routes
+router.get('/:organization/repos/:repo', ReposController.organizationRepoData)
 
 router.get('/gh-auth/', (req, res) => {
     res.redirect(`https://github.com/login/oauth/authorize?client_id=${app_token_id}&scope=admin:org,repo,user,read:packages,read:discussion`)
