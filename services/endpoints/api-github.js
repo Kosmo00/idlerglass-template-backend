@@ -104,30 +104,96 @@ module.exports = class GithubEndpoints {
     }
 
     /**
-     * Try to get an Organization's repo data. Return an response from Github
-     *
+     * Try to get an Organization's repo issues. Return an response from Github
+     * docs: https://docs.github.com/en/rest/reference/issues#list-repository-issues
+     * 
      * @param {string} token Github personal access token
      * @param {string} organization Organization's name
      * @param {string} repo Requested organization's repo
+     * @param {number} page Page in pagination
+     * @param {number} per_page Number of items in pagination
      * @returns {Object} response from Github
      */
-    static async getOrganizationRepo(token, organization, repo) {
+    static async getOrganizationRepoIssues(token, organization, repo, page = 1, per_page = 100) {
         const gh_api_request = this.#perpareAxios(token)
-        const response = await gh_api_request.get(`/orgs/${organization}/repos/${repo}`)
+        const response = await gh_api_request.get(`/repos/${organization}/${repo}/issues?page=${page}&per_page=${per_page}&state=all`)
+
         return response.data
+    }
+    /**
+     * Try to get an Organization's repo labels. Return an response from Github
+     *
+     * @param {string} token Github personal access token
+     * @param {string} organization Organization's name
+     * @returns {Object} response from Github
+     */
+    static async getAllOrgRepoLabels(token, organization, repo) {
+        const gh_api_request = this.#perpareAxios(token)
+        const response = await gh_api_request.get(`/repos/${organization}/${repo}/labels`)
+        const labels = response.data.map(label => this.#formatLabelData(label))
+        return labels
     }
 
     /**
-     * Try to get an Organization's repo issues. Return an response from Github
+     * Try to get an Organization's repo collaborators. Return an response from Github
      *
      * @param {string} token Github personal access token
      * @param {string} organization Organization's name
-     * @param {string} repo Requested organization's repo
      * @returns {Object} response from Github
      */
-    static async getOrganizationRepoIssues(token, organization, repo) {
+    static async getAllOrgRepoCollaborators(token, organization, repo) {
         const gh_api_request = this.#perpareAxios(token)
-        const response = await gh_api_request.get(`/orgs/${organization}/repos/${repo}/issues`)
-        return response.data
+        const response = await gh_api_request.get(`/repos/${organization}/${repo}/collaborators`)
+        const collaborators = response.data.map(collaborator => this.#formatCollaboratorData(collaborator))
+        return collaborators
+    }
+
+    /**
+     * Try to get all issues in a repo
+     *  
+     * @param {string} token Github personal access token
+     * @param {string} organization Organization's name
+     * @param {string} repo Requested organization's repo
+     * @returns {Array} List of issues returned by Github
+     */
+    static async getAllOrgRepoIssues(token, organization, repo) {
+        const MAX_PAGES = 100000
+        let issues = []
+        for (let i = 1; i < MAX_PAGES; i++) {
+            const issues_group = await this.getOrganizationRepoIssues(token, organization, repo, i)
+            for (let j = 0; j < issues_group.length; j++) {
+                if (issues_group[j].pull_request === undefined) {
+                    issues.push(this.#formatIssueData(issues_group[j]))
+                }
+            }
+            if (issues_group.length < 100) {
+                break
+            }
+        }
+        return issues
+    }
+    static #formatIssueData(issue) {
+        return {
+            basic_data: {
+                title: issue.title,
+                state: issue.state,
+                closed_at: issue.closed_at
+            },
+            assignee: this.#formatCollaboratorData(issue.assignee),
+            labels: issue.labels.map(label => this.#formatLabelData(label))
+        }
+    }
+    static #formatCollaboratorData(collaborator) {
+        return {
+            avatar: collaborator?.avatar_url,
+            username: collaborator?.login
+        }
+    }
+    static #formatLabelData(label) {
+        return {
+            color: label.color,
+            description: label.description,
+            name: label.name
+        }
     }
 }

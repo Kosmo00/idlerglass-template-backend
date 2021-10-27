@@ -18,7 +18,19 @@ module.exports = class UsersController {
                 token: remember_token
             }
         }
-        //console.log(data.user)
         return res.status(200).send(data)
+    }
+    static async userOrganizations(req, res) {
+        const token_data = req.header('x-token')
+        const token = await Cripto.getGhTokenFromJWT(token_data)
+        const userOrganizations = await GhClient.getUserOrganizations(token)
+        let organizations = new Array(userOrganizations.length)
+        for (let i = 0; i < organizations.length; i++) {
+            organizations[i] = {
+                name: userOrganizations[i].login,
+                description: userOrganizations[i].description
+            }
+        }
+        return res.status(200).send(organizations)
     }
 }
