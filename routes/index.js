@@ -13,10 +13,10 @@ router.post('/', UsersController.loginUser)
 router.get('/organizations', isAuth, UsersController.userOrganizations)
 
 // organization routes
-router.get('/:organization/repos', OrganizationsController.organizationRepos)
+router.get('/:organization/repos', isAuth, OrganizationsController.organizationRepos)
 
 // repos routes
-router.get('/:organization/repos/:repo', ReposController.organizationRepoData)
+router.get('/:organization/repo/:repo', isAuth, ReposController.organizationRepoData)
 
 router.get('/gh-auth/', (req, res) => {
     res.redirect(`https://github.com/login/oauth/authorize?client_id=${app_token_id}&scope=admin:org,repo,user,read:packages,read:discussion`)
